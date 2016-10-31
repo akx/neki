@@ -42,25 +42,24 @@ function getDefaultSections() {
 
 const sectionsReducer = handleActions({
     [deleteSection]: (state, {type, payload}) => (state.filter((s) => s.id !== payload.section.id)),
-    [addSection]: (state, {type, payload}) => {
+    [addSection]: (state, {payload}) => {
         const {section, rel} = payload;
         const idx = findIndex(state, (s) => s.id === section.id);
         if (idx > -1) {
             const newState = concat([], state);
             const start = idx + (rel === 'after' ? 1 : 0);
-            console.log(start);
             newState.splice(start, 0, newSection());
             return newState;
         }
         return state;
     },
-    [setSectionData]: (state, {type, payload}) => {
+    [setSectionData]: (state, {payload}) => {
         const {section, data} = payload;
         return state.map((s) => (
             s.id === section.id ? Object.assign({}, section, {data}) : s
         ));
     },
-    [setSectionCollapse]: (state, {type, payload}) => {
+    [setSectionCollapse]: (state, {payload}) => {
         const {section, collapse} = payload;
         return state.map((s) => (
             s.id === section.id ? Object.assign({}, section, {collapse}) : s
