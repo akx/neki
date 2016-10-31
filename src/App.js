@@ -1,23 +1,24 @@
 import React, {Component} from 'react';
 import {Box, Flex} from 'reflexbox';
-import uid from 'lodash/uniqueId';
 import './App.css';
 import render from './render';
 import Button from 'react-bootstrap/lib/Button';
+import {connect} from 'react-redux';
+import {addSection, deleteSection, setSectionData, setSectionCollapse} from './actions/sections';
 
-const SectionEditor = ({section, onEdit, onAction}) => {
-    const changeData = (e) => onEdit(section, {data: e.target.value});
-    const changeCollapse = (e) => onEdit(section, {collapse: !!e.target.checked});
+const SectionEditor = connect()(({dispatch, section}) => {
+    const changeData = (e) => dispatch(setSectionData(section, e.target.value));
+    const changeCollapse = (e) => dispatch(setSectionCollapse(section, !!e.target.checked));
     return (
         <Box p={1} mb={1} style={{background: 'silver'}}>
             <textarea value={section.data} onInput={changeData} onChange={changeData} />
             <Flex>
                 <Box flexAuto>
-                    <Button bsSize="xsmall" bsStyle="danger" onClick={() => onAction(section, 'delete')}>Delete Section</Button>
+                    <Button bsSize="xsmall" bsStyle="danger" onClick={() => dispatch(deleteSection(section))}>Delete</Button>
                     &nbsp;
-                    <Button bsSize="xsmall" onClick={() => onAction(section, 'add-above')}>&uarr; Add Above</Button>
+                    <Button bsSize="xsmall" onClick={() => dispatch(addSection(section, 'before'))}>&uarr; Add Above</Button>
                     &nbsp;
-                    <Button bsSize="xsmall" onClick={() => onAction(section, 'add-below')}>&darr; Add Below</Button>
+                    <Button bsSize="xsmall" onClick={() => dispatch(addSection(section, 'after'))}>&darr; Add Below</Button>
                     &nbsp;
                     <label>
                         <input type="checkbox" checked={!!section.collapse} onChange={changeCollapse} />
@@ -27,7 +28,7 @@ const SectionEditor = ({section, onEdit, onAction}) => {
             </Flex>
         </Box>
     );
-};
+});
 
 const renderSections = (sections) => {
     const rows = [[]];
@@ -50,58 +51,17 @@ const renderSections = (sections) => {
 };
 
 class App extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            sections: [
-                {
-                    id: uid(),
-                    plugin: null,
-                    data: 'hello, world!',
-                },
-                {
-                    id: uid(),
-                    plugin: null,
-                    data: 'nnep',
-                },
-                {
-                    id: uid(),
-                    plugin: null,
-                    data: 'nnep',
-                    collapse: true,
-                },
-            ],
-        };
-        this.onEditSection = this.onEditSection.bind(this);
-        this.onSectionAction = this.onSectionAction.bind(this);
-    }
-
-    onEditSection(section, changes) {
-        if ('data' in changes) {
-            section.data = changes;
-        }
-        if ('collapse' in changes) {
-            section.collapse = !!changes.collapse;
-        }
-        this.setState({sections: this.state.sections});
-    }
-
-    onSectionAction(section, action) {
-        
-    }
-
     render() {
+        const {sections} = this.props;
         return (
             <Flex>
-                <Box col={6}>{this.state.sections.map(
-                    (section) => <SectionEditor section={section} key={section.id}
-                                                onEdit={this.onEditSection}
-                                                onAction={this.onSectionAction}
-                    />)}</Box>
-                <Box col={6} p={2}>{renderSections(this.state.sections)}</Box>
+                <Box col={6}>{sections.map((section) => <SectionEditor section={section} key={section.id} />)}</Box>
+                <Box col={6} p={2}>{renderSections(sections)}</Box>
             </Flex>
         );
     }
 }
 
-export default App;
+export default connect(
+    (state) => ({sections: state.sections})
+)(App);
